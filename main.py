@@ -5,6 +5,7 @@ import asyncio
 import os
 
 from pyrogram import Client
+from pyrogram.enums import ChatType
 
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
@@ -18,8 +19,10 @@ async def main():
     async with app:
         async for dialog in app.get_dialogs():
             # only process actual users
-            if dialog.chat.type == "private":
+            if dialog.chat.type == ChatType.PRIVATE:
                 print(dialog.chat.title or dialog.chat.first_name)
+
+                print(dialog.chat.personal_chat)
 
                 # get the user
                 chat = await app.get_chat(chat_id=dialog.chat.id)
@@ -28,5 +31,6 @@ async def main():
 
                 # wait for 4 seconds
                 await asyncio.sleep(4)
+            # await asyncio.sleep(1)
 
 app.run(main())
