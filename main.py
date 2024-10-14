@@ -8,6 +8,9 @@ import sqlite3
 from pyrogram import Client
 from pyrogram.enums import ChatType
 
+from dotenv import load_dotenv
+
+load_dotenv()
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 GROUP_USERNAME = os.getenv('GROUP_USERNAME')
@@ -31,7 +34,7 @@ conn.commit()
 async def main():
     async with app:
         # Get the group chat
-        group_chat = await app.get_chat(GROUP_USERNAME)
+        group_chat = await app.get_chat(str(GROUP_USERNAME))
 
         # Ensure the chat is a group
         if group_chat.type == ChatType.GROUP or group_chat.type == ChatType.SUPERGROUP:
@@ -43,9 +46,9 @@ async def main():
                     continue
 
                 try:
-                    personal_chat = await app.get_chat(user.id)
-                    if personal_chat.type == ChatType.PRIVATE:
-                        username = personal_chat.username
+                    user = await app.get_chat(user.id)
+                    if user.type == ChatType.PRIVATE:
+                        username = user.personal_chat
                         if username:
                             # Insert username into the database
                             c.execute('INSERT OR IGNORE INTO personal_chats (username) VALUES (?)', (username,))
