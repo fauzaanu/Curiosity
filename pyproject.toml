@@ -1,0 +1,11 @@
+[project]
+name = "tguserbot-starter"
+version = "0.1.0"
+description = "Starter template for creating a Telegram userbot"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pyrofork>=2.3.43",
+    "python-dotenv>=1.0.1",
+    "mtprotocrypt>=1.2.6.5b0",
+]
