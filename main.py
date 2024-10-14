@@ -1,36 +1,60 @@
 """
-get the personal channel of a user
+Get the personal chat of users in a public group and store them in a SQLite database.
 """
 import asyncio
 import os
+import sqlite3
 
 from pyrogram import Client
 from pyrogram.enums import ChatType
 
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
-CHANNEL_HANDLE = os.getenv('CHANNEL_HANDLE')
-ENDPOINT_URL = os.getenv('ENDPOINT_URL')
+GROUP_USERNAME = os.getenv('GROUP_USERNAME')
 
 app = Client("ooredoobot", api_id=API_ID, api_hash=API_HASH)
+
+# Create or connect to the SQLite database
+conn = sqlite3.connect('users.db')
+c = conn.cursor()
+
+# Create a table to store usernames
+c.execute('''
+CREATE TABLE IF NOT EXISTS personal_chats (
+    id INTEGER PRIMARY KEY,
+    username TEXT UNIQUE
+)
+''')
+conn.commit()
 
 
 async def main():
     async with app:
-        async for dialog in app.get_dialogs():
-            # only process actual users
-            if dialog.chat.type == ChatType.PRIVATE:
-                print(dialog.chat.title or dialog.chat.first_name)
+        # Get the group chat
+        group_chat = await app.get_chat(GROUP_USERNAME)
 
-                print(dialog.chat.personal_chat)
+        # Ensure the chat is a group
+        if group_chat.type == ChatType.GROUP or group_chat.type == ChatType.SUPERGROUP:
+            async for member in app.get_chat_members(group_chat.id):
+                user = member.user
 
-                # get the user
-                chat = await app.get_chat(chat_id=dialog.chat.id)
-                with open(f'users/{chat.id}.json', 'w') as f:
-                    f.write(str(chat))
+                # Check for personal chat
+                if user.is_bot:
+                    continue
 
-                # wait for 4 seconds
+                try:
+                    personal_chat = await app.get_chat(user.id)
+                    if personal_chat.type == ChatType.PRIVATE:
+                        username = personal_chat.username
+                        if username:
+                            # Insert username into the database
+                            c.execute('INSERT OR IGNORE INTO personal_chats (username) VALUES (?)', (username,))
+                            conn.commit()
+                            print(f"Added {username} to the database.")
+                except Exception as e:
+                    print(f"Could not get personal chat for {user.id}: {e}")
+
+                # Wait for 4 seconds
                 await asyncio.sleep(4)
-            # await asyncio.sleep(1)
 
 app.run(main())
