@@ -15,6 +15,11 @@ API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 GROUP_USERNAME = os.getenv('GROUP_USERNAME')
 
+assert GROUP_USERNAME, "Please set the GROUP_USERNAME environment variable."
+assert GROUP_USERNAME.startswith('@'), "GROUP_USERNAME must start with @."
+assert API_ID, "Please set the API_ID environment variable."
+assert API_HASH, "Please set the API_HASH environment variable."
+
 app = Client("curiosity", api_id=API_ID, api_hash=API_HASH)
 
 # Create or connect to the SQLite database
@@ -34,10 +39,7 @@ conn.commit()
 
 async def main():
     async with app:
-        assert GROUP_USERNAME, "Please set the GROUP_USERNAME environment variable."
-        assert GROUP_USERNAME.startswith('@'), "GROUP_USERNAME must start with @."
-        assert API_ID, "Please set the API_ID environment variable."
-        assert API_HASH, "Please set the API_HASH environment variable."
+
 
         # Get the group chat
         group_chat = await app.get_chat(str(GROUP_USERNAME))
