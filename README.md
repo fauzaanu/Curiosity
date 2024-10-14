@@ -1,13 +1,6 @@
-# Tguserbot-starter
+# Curiosity
 
-A simple userbot starter for telegram userbots.
+Name is inspired by the mars curiosity rover, that is indefinitely exploring mars for life. This program extracts personal channels of everyone in a group discovering public channels and the people assosiated with them.
 
-This template includes pyrofork, mtprotocrypt and python-dotenv
+# why might someone use this you ask?
 
-Examples include every example in the official pyrogram docs
-
-Docs:
-- [Pyrogram](https://docs.pyrogram.org)
-- [Pyrofork](https://pyrofork.mayuri.my.id/main/)
-
-mtprotocrypt is a drop-in replacement for tgcrypto, see: https://github.com/pyrogram/tgcrypto/issues/37#issuecomment-2094699494
