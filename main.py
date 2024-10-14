@@ -34,6 +34,11 @@ conn.commit()
 
 async def main():
     async with app:
+        assert GROUP_USERNAME, "Please set the GROUP_USERNAME environment variable."
+        assert GROUP_USERNAME.startswith('@'), "GROUP_USERNAME must start with @."
+        assert API_ID, "Please set the API_ID environment variable."
+        assert API_HASH, "Please set the API_HASH environment variable."
+
         # Get the group chat
         group_chat = await app.get_chat(str(GROUP_USERNAME))
 
