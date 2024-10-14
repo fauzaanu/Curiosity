@@ -15,10 +15,10 @@ API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 GROUP_USERNAME = os.getenv('GROUP_USERNAME')
 
-app = Client("ooredoobot", api_id=API_ID, api_hash=API_HASH)
+app = Client("curiosity", api_id=API_ID, api_hash=API_HASH)
 
 # Create or connect to the SQLite database
-conn = sqlite3.connect('users.db')
+conn = sqlite3.connect('personal_channels.db')
 c = conn.cursor()
 
 # Create a table to store usernames and personal chat usernames
@@ -49,7 +49,7 @@ async def main():
                 try:
                     the_user = await app.get_chat(user.id)
                     if the_user.type == ChatType.PRIVATE:
-                        username = the_user.username
+                        username = the_user.username if the_user.username else the_user.id
                         personal_chat_username = the_user.personal_chat.username
                         if username and personal_chat_username:
                             # Insert username and personal chat username into the database
