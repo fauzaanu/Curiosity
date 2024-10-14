@@ -21,11 +21,12 @@ app = Client("ooredoobot", api_id=API_ID, api_hash=API_HASH)
 conn = sqlite3.connect('users.db')
 c = conn.cursor()
 
-# Create a table to store usernames
+# Create a table to store usernames and personal chat usernames
 c.execute('''
 CREATE TABLE IF NOT EXISTS personal_chats (
     id INTEGER PRIMARY KEY,
-    username TEXT UNIQUE
+    username TEXT UNIQUE,
+    personal_chat_username TEXT
 )
 ''')
 conn.commit()
@@ -46,14 +47,15 @@ async def main():
                     continue
 
                 try:
-                    user = await app.get_chat(user.id)
-                    if user.type == ChatType.PRIVATE:
-                        username = user.personal_chat
-                        if username:
-                            # Insert username into the database
-                            c.execute('INSERT OR IGNORE INTO personal_chats (username) VALUES (?)', (username,))
+                    user_chat = await app.get_chat(user.id)
+                    if user_chat.type == ChatType.PRIVATE:
+                        username = user.username
+                        personal_chat_username = user_chat.username
+                        if username and personal_chat_username:
+                            # Insert username and personal chat username into the database
+                            c.execute('INSERT OR IGNORE INTO personal_chats (username, personal_chat_username) VALUES (?, ?)', (username, personal_chat_username))
                             conn.commit()
-                            print(f"Added {username} to the database.")
+                            print(f"Added {username} with personal chat {personal_chat_username} to the database.")
                 except Exception as e:
                     print(f"Could not get personal chat for {user.id}: {e}")
 
