@@ -39,8 +39,6 @@ conn.commit()
 
 async def main():
     async with app:
-
-
         # Get the group chat
         group_chat = await app.get_chat(str(GROUP_USERNAME))
 

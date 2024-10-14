@@ -13,4 +13,5 @@ dependencies = [
 [tool.uv]
 dev-dependencies = [
     "aider-chat>=0.59.1",
+    "ruff>=0.6.9",
 ]
