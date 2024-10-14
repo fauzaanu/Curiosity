@@ -47,10 +47,10 @@ async def main():
                     continue
 
                 try:
-                    user_chat = await app.get_chat(user.id)
-                    if user_chat.type == ChatType.PRIVATE:
-                        username = user.username
-                        personal_chat_username = user_chat.username
+                    the_user = await app.get_chat(user.id)
+                    if the_user.type == ChatType.PRIVATE:
+                        username = the_user.username
+                        personal_chat_username = the_user.personal_chat.username
                         if username and personal_chat_username:
                             # Insert username and personal chat username into the database
                             c.execute('INSERT OR IGNORE INTO personal_chats (username, personal_chat_username) VALUES (?, ?)', (username, personal_chat_username))
@@ -60,6 +60,6 @@ async def main():
                     print(f"Could not get personal chat for {user.id}: {e}")
 
                 # Wait for 4 seconds
-                await asyncio.sleep(4)
+                await asyncio.sleep(1)
 
 app.run(main())
