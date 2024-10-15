@@ -7,8 +7,10 @@ import os
 import sqlite3
 from typing import List, Optional
 
-from pyrogram import Client, Dialog, Chat
+from pyrogram import Client
 from pyrogram.enums import ChatType
+from pyrogram.types import Chat, Dialog
+
 
 from dotenv import load_dotenv
 
@@ -47,13 +49,14 @@ async def main() -> None:
             ):
                 group_dialogs.append(dialog)
 
+            await asyncio.sleep(0.2)
+
         for dialog in group_dialogs:
             group_id: int = dialog.chat.id
 
             # Get the group chat
             group_chat: Chat = await app.get_chat(group_id)
 
-            # Ensure the chat is a group
             if (
                 group_chat.type == ChatType.GROUP
                 or group_chat.type == ChatType.SUPERGROUP
@@ -62,6 +65,8 @@ async def main() -> None:
                     user = member.user
 
                     # Check for personal chat
+
+                    ## Skip bots
                     if user.is_bot:
                         continue
 
@@ -69,9 +74,15 @@ async def main() -> None:
                         the_user: Chat = await app.get_chat(user.id)
                         if the_user.type == ChatType.PRIVATE:
                             username: Optional[str] = (
-                                the_user.username if the_user.username else str(the_user.id)
+                                the_user.username
+                                if the_user.username
+                                else str(the_user.id)
                             )
-                            personal_chat_username: Optional[str] = getattr(the_user, 'personal_chat', None).username if hasattr(the_user, 'personal_chat') else None
+                            personal_chat_username: Optional[str] = (
+                                getattr(the_user, "personal_chat", None).username
+                                if hasattr(the_user, "personal_chat")
+                                else None
+                            )
                             if username and personal_chat_username:
                                 # Insert username and personal chat username into the database
                                 c.execute(
