@@ -5,13 +5,12 @@ Get the personal chat of users in a public group and store them in a SQLite data
 import asyncio
 import os
 import sqlite3
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
-import time
 
 from pyrogram import Client
 from pyrogram.enums import ChatType
-from pyrogram.types import Chat, Dialog
+from pyrogram.types import Chat
 from pyrogram.errors import FloodWait
 
 from dotenv import load_dotenv
@@ -79,68 +78,77 @@ async def main() -> None:
                     while True:
                         try:
                             the_user: Chat = await app.get_chat(user.id)
-                            if the_user.type == ChatType.PRIVATE:
-                                username: Optional[str] = (
-                                    the_user.username
-                                    if the_user.username
-                                    else str(the_user.id)
-                                )
-                                personal_chat_username: Optional[str] = (
-                                    getattr(the_user, "personal_chat", None).username
-                                    if hasattr(the_user, "personal_chat")
-                                    else None
-                                )
-                                first_name: Optional[str] = the_user.first_name
-                                last_name: Optional[str] = the_user.last_name
-                                profile_photo_url: Optional[str] = (
-                                    the_user.photo.big_file_id if the_user.photo else None
-                                )
-
-                                # download the profile photo
-                                if profile_photo_url:
-                                    profile_photo = await app.download_media(
-                                        profile_photo_url
+                            if the_user:
+                                if the_user.type == ChatType.PRIVATE:
+                                    username: Optional[str] = (
+                                        the_user.username
+                                        if the_user.username
+                                        else str(the_user.id)
                                     )
-                                    profile_photo_url = profile_photo
-
-                                bio: Optional[str] = (
-                                    the_user.bio if hasattr(the_user, "bio") else None
-                                )
-                                last_seen_status: Optional[str] = str(member.status)
-                                user_type: Optional[str] = "bot" if user.is_bot else "user"
-                                timestamp: str = datetime.now().isoformat()
-
-                                if username and personal_chat_username:
-                                    # Insert all information into the database
-                                    c.execute(
-                                        "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username, source, user_id, group_id, timestamp, first_name, last_name, profile_photo_url, bio, last_seen_status, user_type, group_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                                        (
-                                            username,
-                                            personal_chat_username,
-                                            group_username,
-                                            user.id,
-                                            group_id,
-                                            timestamp,
-                                            first_name,
-                                            last_name,
-                                            profile_photo_url,
-                                            bio,
-                                            last_seen_status,
-                                            user_type,
-                                            group_name,
-                                        ),
+                                    personal_chat_username: Optional[str] = (
+                                        getattr(the_user, "personal_chat", None).username
+                                        if hasattr(the_user, "personal_chat")
+                                        else None
                                     )
-                                    conn.commit()
-                                    print(
-                                        f"Added {username} with personal chat {personal_chat_username} from {group_username} to the database."
+                                    first_name: Optional[str] = the_user.first_name
+                                    last_name: Optional[str] = the_user.last_name
+                                    profile_photo_url: Optional[str] = (
+                                        the_user.photo.big_file_id
+                                        if the_user.photo
+                                        else None
                                     )
-                            break  # Exit the loop if successful
+
+                                    # download the profile photo
+                                    if profile_photo_url:
+                                        profile_photo = await app.download_media(
+                                            profile_photo_url
+                                        )
+                                        profile_photo_url = profile_photo
+
+                                    bio: Optional[str] = (
+                                        the_user.bio if hasattr(the_user, "bio") else None
+                                    )
+                                    last_seen_status: Optional[str] = str(member.status)
+                                    user_type: Optional[str] = (
+                                        "bot" if user.is_bot else "user"
+                                    )
+                                    timestamp: str = datetime.now().isoformat()
+
+                                    if username and personal_chat_username:
+                                        # Insert all information into the database
+                                        c.execute(
+                                            "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username, source, user_id, group_id, timestamp, first_name, last_name, profile_photo_url, bio, last_seen_status, user_type, group_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                            (
+                                                username,
+                                                personal_chat_username,
+                                                group_username,
+                                                user.id,
+                                                group_id,
+                                                timestamp,
+                                                first_name,
+                                                last_name,
+                                                profile_photo_url,
+                                                bio,
+                                                last_seen_status,
+                                                user_type,
+                                                group_name,
+                                            ),
+                                        )
+                                        conn.commit()
+                                        print(
+                                            f"Added {username} with personal chat {personal_chat_username} from {group_username} to the database."
+                                        )
+                                break  # Exit the loop if successful
                         except FloodWait:
-                            print(f"Rate limit exceeded. Waiting for {backoff_time} seconds.")
+                            print(
+                                f"Rate limit exceeded. Waiting for {backoff_time} seconds."
+                            )
                             await asyncio.sleep(backoff_time)
                             backoff_time *= 2  # Exponential backoff
                         except Exception as e:
-                            print(f"Could not get personal chat for {user.id}: {e}")
+                            print(
+                                f"Could not get personal chat for{type(user)}:{user.id}: {e}"
+                            )
                             break  # Exit the loop on other exceptions
 
                     # Wait for 1 second
