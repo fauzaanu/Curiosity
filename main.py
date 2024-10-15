@@ -26,12 +26,13 @@ app: Client = Client("curiosity", api_id=API_ID, api_hash=API_HASH)
 conn: sqlite3.Connection = sqlite3.connect("personal_channels.db")
 c: sqlite3.Cursor = conn.cursor()
 
-# Create a table to store usernames and personal chat usernames
+# Create a table to store usernames, personal chat usernames, and source
 c.execute("""
 CREATE TABLE IF NOT EXISTS personal_chats (
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE,
-    personal_chat_username TEXT
+    personal_chat_username TEXT,
+    source TEXT
 )
 """)
 conn.commit()
@@ -42,6 +43,7 @@ async def main() -> None:
         async for dialog in app.get_dialogs():
             if dialog.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
                 group_id: int = dialog.chat.id
+                group_username: str = dialog.chat.username if dialog.chat.username else str(group_id)
 
                 # Get the group chat
                 group_chat: Chat = await app.get_chat(group_id)
@@ -69,14 +71,14 @@ async def main() -> None:
                                 else None
                             )
                             if username and personal_chat_username:
-                                # Insert username and personal chat username into the database
+                                # Insert username, personal chat username, and source into the database
                                 c.execute(
-                                    "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username) VALUES (?, ?)",
-                                    (username, personal_chat_username),
+                                    "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username, source) VALUES (?, ?, ?)",
+                                    (username, personal_chat_username, group_username),
                                 )
                                 conn.commit()
                                 print(
-                                    f"Added {username} with personal chat {personal_chat_username} to the database."
+                                    f"Added {username} with personal chat {personal_chat_username} from {group_username} to the database."
                                 )
                     except Exception as e:
                         print(f"Could not get personal chat for {user.id}: {e}")
