@@ -89,56 +89,57 @@ async def main() -> None:
                                         user.username or the_user.username or str(the_user.id)
                                     )
                                     personal_chat = getattr(the_user, "personal_chat", None)
-                                    personal_chat_username: Optional[str] = (
-                                        personal_chat.username if personal_chat else None
-                                    )
-                                    first_name: Optional[str] = the_user.first_name
-                                    last_name: Optional[str] = the_user.last_name
-                                    profile_photo_url: Optional[str] = (
-                                        the_user.photo.big_file_id
-                                        if the_user.photo
-                                        else None
-                                    )
-
-                                    # download the profile photo
-                                    if profile_photo_url:
-                                        profile_photo = await app.download_media(
-                                            profile_photo_url
+                                    if personal_chat:
+                                        personal_chat_username: Optional[str] = personal_chat.username
+                                        first_name: Optional[str] = the_user.first_name
+                                        last_name: Optional[str] = the_user.last_name
+                                        profile_photo_url: Optional[str] = (
+                                            the_user.photo.big_file_id
+                                            if the_user.photo
+                                            else None
                                         )
-                                        profile_photo_url = profile_photo
 
-                                    bio: Optional[str] = (
-                                        the_user.bio if hasattr(the_user, "bio") else None
-                                    )
-                                    last_seen_status: Optional[str] = str(member.status)
-                                    user_type: Optional[str] = (
-                                        "bot" if user.is_bot else "user"
-                                    )
-                                    timestamp: str = datetime.now().isoformat()
+                                        # download the profile photo
+                                        if profile_photo_url:
+                                            profile_photo = await app.download_media(
+                                                profile_photo_url
+                                            )
+                                            profile_photo_url = profile_photo
 
-                                    # Insert all information into the database
-                                    c.execute(
-                                        "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username, source, user_id, group_id, timestamp, first_name, last_name, profile_photo_url, bio, last_seen_status, user_type, group_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                                        (
-                                            username,
-                                            personal_chat_username,
-                                            group_username,
-                                            user.id,
-                                            group_id,
-                                            timestamp,
-                                            first_name,
-                                            last_name,
-                                            profile_photo_url,
-                                            bio,
-                                            last_seen_status,
-                                            user_type,
-                                            group_name,
-                                        ),
-                                    )
-                                    conn.commit()
-                                    print(
-                                        f"Added {username} with personal chat {personal_chat_username or 'None'} from {group_username} to the database."
-                                    )
+                                        bio: Optional[str] = (
+                                            the_user.bio if hasattr(the_user, "bio") else None
+                                        )
+                                        last_seen_status: Optional[str] = str(member.status)
+                                        user_type: Optional[str] = (
+                                            "bot" if user.is_bot else "user"
+                                        )
+                                        timestamp: str = datetime.now().isoformat()
+
+                                        # Insert all information into the database
+                                        c.execute(
+                                            "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username, source, user_id, group_id, timestamp, first_name, last_name, profile_photo_url, bio, last_seen_status, user_type, group_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                            (
+                                                username,
+                                                personal_chat_username,
+                                                group_username,
+                                                user.id,
+                                                group_id,
+                                                timestamp,
+                                                first_name,
+                                                last_name,
+                                                profile_photo_url,
+                                                bio,
+                                                last_seen_status,
+                                                user_type,
+                                                group_name,
+                                            ),
+                                        )
+                                        conn.commit()
+                                        print(
+                                            f"Added {username} with personal chat {personal_chat_username} from {group_username} to the database."
+                                        )
+                                    else:
+                                        print(f"Skipped {username} as they don't have a personal chat.")
                                 break  # Exit the loop if successful
                         except FloodWait:
                             print(
