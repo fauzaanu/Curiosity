@@ -56,8 +56,12 @@ async def main() -> None:
         async for dialog in app.get_dialogs():
             if dialog.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
                 group_id: int = dialog.chat.id
-                group_username: str = dialog.chat.username if dialog.chat.username else str(group_id)
-                group_name: str = dialog.chat.title if dialog.chat.title else "Unknown Group"
+                group_username: str = (
+                    dialog.chat.username if dialog.chat.username else str(group_id)
+                )
+                group_name: str = (
+                    dialog.chat.title if dialog.chat.title else "Unknown Group"
+                )
 
                 # Get the group chat
                 group_chat: Chat = await app.get_chat(group_id)
@@ -86,9 +90,21 @@ async def main() -> None:
                             )
                             first_name: Optional[str] = the_user.first_name
                             last_name: Optional[str] = the_user.last_name
-                            profile_photo_url: Optional[str] = the_user.photo.file_id if the_user.photo else None
-                            bio: Optional[str] = the_user.bio if hasattr(the_user, "bio") else None
-                            last_seen_status: Optional[str] = member.status
+                            profile_photo_url: Optional[str] = (
+                                the_user.photo.big_file_id if the_user.photo else None
+                            )
+
+                            # download the profile photo
+                            if profile_photo_url:
+                                profile_photo = await app.download_media(
+                                    profile_photo_url
+                                )
+                                profile_photo_url = profile_photo
+
+                            bio: Optional[str] = (
+                                the_user.bio if hasattr(the_user, "bio") else None
+                            )
+                            last_seen_status: Optional[str] = str(member.status)
                             user_type: Optional[str] = "bot" if user.is_bot else "user"
                             timestamp: str = datetime.now().isoformat()
 
@@ -96,15 +112,29 @@ async def main() -> None:
                                 # Insert all information into the database
                                 c.execute(
                                     "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username, source, user_id, group_id, timestamp, first_name, last_name, profile_photo_url, bio, last_seen_status, user_type, group_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                                    (username, personal_chat_username, group_username, user.id, group_id, timestamp, first_name, last_name, profile_photo_url, bio, last_seen_status, user_type, group_name),
+                                    (
+                                        username,
+                                        personal_chat_username,
+                                        group_username,
+                                        user.id,
+                                        group_id,
+                                        timestamp,
+                                        first_name,
+                                        last_name,
+                                        profile_photo_url,
+                                        bio,
+                                        last_seen_status,
+                                        user_type,
+                                        group_name,
+                                    ),
                                 )
                                 conn.commit()
                                 print(
                                     f"Added {username} with personal chat {personal_chat_username} from {group_username} to the database."
                                 )
                     except FloodWait as e:
-                        print(f"Rate limit exceeded. Waiting for {e.x} seconds.")
-                        await asyncio.sleep(e.x)
+                        print(f"Rate limit exceeded. Waiting for {e} seconds.")
+                        await asyncio.sleep(e)
                     except Exception as e:
                         print(f"Could not get personal chat for {user.id}: {e}")
 
