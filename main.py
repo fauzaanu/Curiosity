@@ -7,6 +7,7 @@ import os
 import sqlite3
 from typing import Optional
 from datetime import datetime
+import time
 
 from pyrogram import Client
 from pyrogram.enums import ChatType
@@ -52,6 +53,11 @@ conn.commit()
 
 async def main() -> None:
     async with app:
+        sleep_time = 1  # Start with a 1 second sleep time
+        iteration_count = 0
+        successful_requests = 0
+        rate_limit_hits = 0
+
         async for dialog in app.get_dialogs():
             if dialog.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
                 group_id: int = dialog.chat.id
@@ -74,7 +80,8 @@ async def main() -> None:
                     if user.is_bot:
                         continue
 
-                    backoff_time = 1  # Start with a 1 second backoff
+                    iteration_count += 1
+                    start_time = time.time()
                     while True:
                         try:
                             the_user: Chat = await app.get_chat(user.id)
@@ -140,21 +147,33 @@ async def main() -> None:
                                         )
                                     else:
                                         print(f"Skipped {username} as they don't have a personal chat.")
+                                successful_requests += 1
                                 break  # Exit the loop if successful
-                        except FloodWait:
-                            print(
-                                f"Rate limit exceeded. Waiting for {backoff_time} seconds."
-                            )
-                            await asyncio.sleep(backoff_time)
-                            backoff_time *= 2  # Exponential backoff
+                        except FloodWait as e:
+                            rate_limit_hits += 1
+                            sleep_time = e.value  # Use the wait time provided by FloodWait
+                            print(f"Rate limit exceeded. Waiting for {sleep_time} seconds.")
+                            await asyncio.sleep(sleep_time)
                         except Exception as e:
                             print(
-                                f"Could not get personal chat for{type(user)}:{user.id}: {e}"
+                                f"Could not get personal chat for {type(user)}:{user.id}: {e}"
                             )
                             break  # Exit the loop on other exceptions
 
-                    # Wait for 1 second
-                    await asyncio.sleep(1)
+                    # Adjust sleep time every 20 iterations
+                    if iteration_count % 20 == 0:
+                        if rate_limit_hits == 0:
+                            sleep_time = max(0.5, sleep_time * 0.8)  # Decrease sleep time, but not below 0.5 seconds
+                        else:
+                            sleep_time *= 1.2  # Increase sleep time
+                        rate_limit_hits = 0  # Reset the counter
+
+                    # Calculate remaining time to sleep
+                    elapsed_time = time.time() - start_time
+                    remaining_sleep_time = max(0, sleep_time - elapsed_time)
+                    
+                    # Wait for the calculated sleep time
+                    await asyncio.sleep(remaining_sleep_time)
 
 
 app.run(main())
