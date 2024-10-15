@@ -80,10 +80,13 @@ async def main() -> None:
                             the_user: Chat = await app.get_chat(user.id)
                             if the_user:
                                 if the_user.type == ChatType.PRIVATE:
+                                    # Debug prints
+                                    print(f"User ID: {the_user.id}")
+                                    print(f"Username from the_user: {the_user.username}")
+                                    print(f"Username from user: {user.username}")
+                                        
                                     username: Optional[str] = (
-                                        the_user.username
-                                        if the_user.username
-                                        else str(the_user.id)
+                                        user.username or the_user.username or str(the_user.id)
                                     )
                                     personal_chat = getattr(the_user, "personal_chat", None)
                                     personal_chat_username: Optional[str] = (
