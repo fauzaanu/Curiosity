@@ -89,15 +89,23 @@ async def main() -> None:
                                 if the_user.type == ChatType.PRIVATE:
                                     # Debug prints
                                     print(f"User ID: {the_user.id}")
-                                    print(f"Username from the_user: {the_user.username}")
-                                    print(f"Username from user: {user.username}")
-                                        
-                                    username: Optional[str] = (
-                                        user.username or the_user.username or str(the_user.id)
+                                    print(
+                                        f"Username from the_user: {the_user.username}"
                                     )
-                                    personal_chat = getattr(the_user, "personal_chat", None)
+                                    print(f"Username from user: {user.username}")
+
+                                    username: Optional[str] = (
+                                        user.username
+                                        or the_user.username
+                                        or str(the_user.id)
+                                    )
+                                    personal_chat = getattr(
+                                        the_user, "personal_chat", None
+                                    )
                                     if personal_chat:
-                                        personal_chat_username: Optional[str] = personal_chat.username
+                                        personal_chat_username: Optional[str] = (
+                                            personal_chat.username
+                                        )
                                         first_name: Optional[str] = the_user.first_name
                                         last_name: Optional[str] = the_user.last_name
                                         profile_photo_url: Optional[str] = (
@@ -114,9 +122,13 @@ async def main() -> None:
                                             profile_photo_url = profile_photo
 
                                         bio: Optional[str] = (
-                                            the_user.bio if hasattr(the_user, "bio") else None
+                                            the_user.bio
+                                            if hasattr(the_user, "bio")
+                                            else None
                                         )
-                                        last_seen_status: Optional[str] = str(member.status)
+                                        last_seen_status: Optional[str] = str(
+                                            member.status
+                                        )
                                         user_type: Optional[str] = (
                                             "bot" if user.is_bot else "user"
                                         )
@@ -146,13 +158,19 @@ async def main() -> None:
                                             f"Added {username} with personal chat {personal_chat_username} from {group_username} to the database."
                                         )
                                     else:
-                                        print(f"Skipped {username} as they don't have a personal chat.")
+                                        print(
+                                            f"Skipped {username} as they don't have a personal chat."
+                                        )
                                 successful_requests += 1
                                 break  # Exit the loop if successful
                         except FloodWait as e:
                             rate_limit_hits += 1
-                            sleep_time = e.value  # Use the wait time provided by FloodWait
-                            print(f"Rate limit exceeded. Waiting for {sleep_time} seconds.")
+                            sleep_time = (
+                                e.value
+                            )  # Use the wait time provided by FloodWait
+                            print(
+                                f"Rate limit exceeded. Waiting for {sleep_time} seconds."
+                            )
                             await asyncio.sleep(sleep_time)
                         except Exception as e:
                             print(
@@ -163,7 +181,9 @@ async def main() -> None:
                     # Adjust sleep time every 20 iterations
                     if iteration_count % 20 == 0:
                         if rate_limit_hits == 0:
-                            sleep_time = max(0.5, sleep_time * 0.8)  # Decrease sleep time, but not below 0.5 seconds
+                            sleep_time = max(
+                                0.1, sleep_time * 0.8
+                            )  # Decrease sleep time, but not below 0.1 seconds
                         else:
                             sleep_time *= 1.2  # Increase sleep time
                         rate_limit_hits = 0  # Reset the counter
@@ -171,7 +191,7 @@ async def main() -> None:
                     # Calculate remaining time to sleep
                     elapsed_time = time.time() - start_time
                     remaining_sleep_time = max(0, sleep_time - elapsed_time)
-                    
+
                     # Wait for the calculated sleep time
                     await asyncio.sleep(remaining_sleep_time)
 
