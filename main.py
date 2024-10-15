@@ -7,10 +7,12 @@ import os
 import sqlite3
 from typing import List, Optional
 from datetime import datetime
+import time
 
 from pyrogram import Client
 from pyrogram.enums import ChatType
 from pyrogram.types import Chat, Dialog
+from pyrogram.errors import FloodWait
 
 from dotenv import load_dotenv
 
@@ -100,6 +102,9 @@ async def main() -> None:
                                 print(
                                     f"Added {username} with personal chat {personal_chat_username} from {group_username} to the database."
                                 )
+                    except FloodWait as e:
+                        print(f"Rate limit exceeded. Waiting for {e.x} seconds.")
+                        await asyncio.sleep(e.x)
                     except Exception as e:
                         print(f"Could not get personal chat for {user.id}: {e}")
 
