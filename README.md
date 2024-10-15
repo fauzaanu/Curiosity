@@ -4,10 +4,10 @@ Curiosity is a Python program that extracts information about users with persona
 
 ## Features
 
-- Connects to Telegram using the Pyrogram library
+- Connects to Telegram using the Pyrogram library (pyrofork)
 - Scans public groups and supergroups
 - Identifies users with personal chats
-- Stores user information in a SQLite database
+- Stores user information in a SQLite database for users with personal chats
 - Handles rate limiting with exponential backoff
 
 ## Data Collected
@@ -38,9 +38,8 @@ Refer to the `env_sample` file for the required environment variables. You can c
 ## Setup
 
 1. Clone the repository
-2. Install the required dependencies (Pyrogram, python-dotenv)
+2. uv sync
 3. Set up your `.env` file with the necessary API credentials
-4. Run the script using Python 3.7+
 
 ## Usage
 
@@ -51,7 +50,3 @@ python main.py
 ```
 
 The program will scan through your Telegram dialogs, identify public groups, and collect information about users with personal chats. The data will be stored in a SQLite database named `personal_channels.db`.
-
-## Note
-
-This program respects Telegram's rate limits and implements an exponential backoff strategy to avoid flooding the API with requests. Users without personal chats are skipped and not stored in the database.
