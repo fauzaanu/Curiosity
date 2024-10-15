@@ -11,7 +11,6 @@ from pyrogram import Client
 from pyrogram.enums import ChatType
 from pyrogram.types import Chat, Dialog
 
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -40,27 +39,13 @@ conn.commit()
 
 async def main() -> None:
     async with app:
-        # get all the groups
-        group_dialogs: List[Dialog] = []
         async for dialog in app.get_dialogs():
-            if (
-                dialog.chat.type == ChatType.GROUP
-                or dialog.chat.type == ChatType.SUPERGROUP
-            ):
-                group_dialogs.append(dialog)
+            if dialog.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
+                group_id: int = dialog.chat.id
 
-            await asyncio.sleep(0.2)
+                # Get the group chat
+                group_chat: Chat = await app.get_chat(group_id)
 
-        for dialog in group_dialogs:
-            group_id: int = dialog.chat.id
-
-            # Get the group chat
-            group_chat: Chat = await app.get_chat(group_id)
-
-            if (
-                group_chat.type == ChatType.GROUP
-                or group_chat.type == ChatType.SUPERGROUP
-            ):
                 async for member in app.get_chat_members(group_chat.id):
                     user = member.user
 
@@ -96,7 +81,7 @@ async def main() -> None:
                     except Exception as e:
                         print(f"Could not get personal chat for {user.id}: {e}")
 
-                    # Wait for 4 seconds
+                    # Wait for 1 second
                     await asyncio.sleep(1)
 
 
