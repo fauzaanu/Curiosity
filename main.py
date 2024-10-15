@@ -6,6 +6,7 @@ import asyncio
 import os
 import sqlite3
 from typing import List, Optional
+from datetime import datetime
 
 from pyrogram import Client
 from pyrogram.enums import ChatType
@@ -32,7 +33,17 @@ CREATE TABLE IF NOT EXISTS personal_chats (
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE,
     personal_chat_username TEXT,
-    source TEXT
+    source TEXT,
+    user_id INTEGER,
+    group_id INTEGER,
+    timestamp TEXT,
+    first_name TEXT,
+    last_name TEXT,
+    profile_photo_url TEXT,
+    bio TEXT,
+    last_seen_status TEXT,
+    user_type TEXT,
+    group_name TEXT
 )
 """)
 conn.commit()
@@ -44,6 +55,7 @@ async def main() -> None:
             if dialog.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
                 group_id: int = dialog.chat.id
                 group_username: str = dialog.chat.username if dialog.chat.username else str(group_id)
+                group_name: str = dialog.chat.title if dialog.chat.title else "Unknown Group"
 
                 # Get the group chat
                 group_chat: Chat = await app.get_chat(group_id)
@@ -70,11 +82,19 @@ async def main() -> None:
                                 if hasattr(the_user, "personal_chat")
                                 else None
                             )
+                            first_name: Optional[str] = the_user.first_name
+                            last_name: Optional[str] = the_user.last_name
+                            profile_photo_url: Optional[str] = the_user.photo.file_id if the_user.photo else None
+                            bio: Optional[str] = the_user.bio if hasattr(the_user, "bio") else None
+                            last_seen_status: Optional[str] = member.status
+                            user_type: Optional[str] = "bot" if user.is_bot else "user"
+                            timestamp: str = datetime.now().isoformat()
+
                             if username and personal_chat_username:
-                                # Insert username, personal chat username, and source into the database
+                                # Insert all information into the database
                                 c.execute(
-                                    "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username, source) VALUES (?, ?, ?)",
-                                    (username, personal_chat_username, group_username),
+                                    "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username, source, user_id, group_id, timestamp, first_name, last_name, profile_photo_url, bio, last_seen_status, user_type, group_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                    (username, personal_chat_username, group_username, user.id, group_id, timestamp, first_name, last_name, profile_photo_url, bio, last_seen_status, user_type, group_name),
                                 )
                                 conn.commit()
                                 print(
