@@ -85,10 +85,9 @@ async def main() -> None:
                                         if the_user.username
                                         else str(the_user.id)
                                     )
+                                    personal_chat = getattr(the_user, "personal_chat", None)
                                     personal_chat_username: Optional[str] = (
-                                        getattr(the_user, "personal_chat", None).username
-                                        if hasattr(the_user, "personal_chat")
-                                        else None
+                                        personal_chat.username if personal_chat else None
                                     )
                                     first_name: Optional[str] = the_user.first_name
                                     last_name: Optional[str] = the_user.last_name
@@ -114,30 +113,29 @@ async def main() -> None:
                                     )
                                     timestamp: str = datetime.now().isoformat()
 
-                                    if username and personal_chat_username:
-                                        # Insert all information into the database
-                                        c.execute(
-                                            "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username, source, user_id, group_id, timestamp, first_name, last_name, profile_photo_url, bio, last_seen_status, user_type, group_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                                            (
-                                                username,
-                                                personal_chat_username,
-                                                group_username,
-                                                user.id,
-                                                group_id,
-                                                timestamp,
-                                                first_name,
-                                                last_name,
-                                                profile_photo_url,
-                                                bio,
-                                                last_seen_status,
-                                                user_type,
-                                                group_name,
-                                            ),
-                                        )
-                                        conn.commit()
-                                        print(
-                                            f"Added {username} with personal chat {personal_chat_username} from {group_username} to the database."
-                                        )
+                                    # Insert all information into the database
+                                    c.execute(
+                                        "INSERT OR IGNORE INTO personal_chats (username, personal_chat_username, source, user_id, group_id, timestamp, first_name, last_name, profile_photo_url, bio, last_seen_status, user_type, group_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                        (
+                                            username,
+                                            personal_chat_username,
+                                            group_username,
+                                            user.id,
+                                            group_id,
+                                            timestamp,
+                                            first_name,
+                                            last_name,
+                                            profile_photo_url,
+                                            bio,
+                                            last_seen_status,
+                                            user_type,
+                                            group_name,
+                                        ),
+                                    )
+                                    conn.commit()
+                                    print(
+                                        f"Added {username} with personal chat {personal_chat_username or 'None'} from {group_username} to the database."
+                                    )
                                 break  # Exit the loop if successful
                         except FloodWait:
                             print(
